@@ -1,7 +1,11 @@
 package org.darot.authserviceapplication.presentation.dto
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.springframework.http.HttpStatus
+
+sealed class AuthResponse
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-open class AuthResponse (open val status: HttpStatus, open val message: String)
+data class Success<T>(
+    val message: String,
+    val data: T? = null
+): AuthResponse()

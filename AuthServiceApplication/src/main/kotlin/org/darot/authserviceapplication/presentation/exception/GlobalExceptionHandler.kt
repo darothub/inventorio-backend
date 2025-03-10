@@ -9,6 +9,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import java.lang.IllegalArgumentException
 
 @Slf4j
 @RestControllerAdvice
@@ -25,6 +26,27 @@ class GlobalExceptionHandler {
             message = ex.message.toString()
         )
 
+        return ResponseEntity(errorResponse, errorResponse.status)
+    }
+
+    @ExceptionHandler(NoSuchMethodException::class)
+    fun handleRateLimiterException(ex: NoSuchMethodException): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse(
+            status = HttpStatus.TOO_MANY_REQUESTS,
+            message = ex.message.toString()
+        )
+        return ResponseEntity(errorResponse, errorResponse.status)
+    }
+
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun handleIllegalArgumentException(
+        ex: Exception,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse(
+            status = HttpStatus.BAD_REQUEST,
+            message = ex.message.toString()
+        )
         return ResponseEntity(errorResponse, errorResponse.status)
     }
 

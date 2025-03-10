@@ -1,10 +1,12 @@
 package org.darot.authserviceapplication.infrastructure.security
 
 import io.jsonwebtoken.Claims
+import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
 import io.jsonwebtoken.security.SignatureException
+import org.darot.authserviceapplication.presentation.exception.InvalidTokenException
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Component
 import java.util.*
@@ -14,7 +16,7 @@ import javax.crypto.SecretKey
 class JwtUtil {
     private val secret = "65dbe70cb66174f78717a9d81ad847732616aa425f913c108311683b4a839452"
     private val accessTokenExpirationTime = System.currentTimeMillis() + 1000 * 60 * 60 * 24 //24 hours
-    private val refreshTokenExpirationTime = accessTokenExpirationTime * 30 // 30 days
+    private val refreshTokenExpirationTime = System.currentTimeMillis()
 
 
     fun generateAccessToken(email: String): String = generateAccessToken(hashMapOf(), email)
@@ -48,7 +50,7 @@ class JwtUtil {
             .claims(extraClaims)
             .subject(email)
             .issuedAt(Date(System.currentTimeMillis()))
-            .expiration(Date(System.currentTimeMillis()+expiration))
+            .expiration(Date(expiration))
             .signWith(getSigningKey())
             .compact()
 
@@ -66,6 +68,8 @@ class JwtUtil {
             .build()
             .parseSignedClaims(token)
             .payload
+    } catch (e: ExpiredJwtException){
+        throw InvalidTokenException("Invalid JWT signature")
     } catch (e: SignatureException) {
         throw IllegalArgumentException(e)
     }

@@ -34,7 +34,7 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt:0.12.6")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.springframework.kafka:spring-kafka")
+//    implementation("org.springframework.kafka:spring-kafka")
 // https://mvnrepository.com/artifact/io.github.resilience4j/resilience4j-spring-boot2
     implementation("io.github.resilience4j:resilience4j-spring-boot2:2.3.0")
 // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-aop
@@ -45,9 +45,10 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("org.springframework.kafka:spring-kafka-test")
+//    testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("org.springframework.security:spring-security-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation ("org.mockito.kotlin:mockito-kotlin:4.0.0")
 }
 
 kotlin {

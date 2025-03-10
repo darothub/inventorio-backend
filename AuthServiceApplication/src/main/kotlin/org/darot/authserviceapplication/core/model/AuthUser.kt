@@ -35,20 +35,3 @@ data class AuthUser (
 
     override fun isEnabled(): Boolean = true
 }
-@Entity
-data class Student(
-    @Id
-    val id: Long? = null,
-    val email: String,
-    @ManyToOne
-    @JoinColumn(name = "class_room_id")
-    var classRoom: ClassRoom
-)
-@Entity
-data class ClassRoom(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private var classRoomId: Long? = null,
-    @OneToMany(mappedBy = "class_room", cascade = [CascadeType.ALL], orphanRemoval = true, targetEntity = Student::class)
-    private var students: List<Student> = listOf(),
-)

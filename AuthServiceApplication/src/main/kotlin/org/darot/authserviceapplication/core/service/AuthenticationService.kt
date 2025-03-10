@@ -1,17 +1,13 @@
 package org.darot.authserviceapplication.core.service
 
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter
-import org.darot.authserviceapplication.infrastructure.db.AuthUserRepository
 import org.darot.authserviceapplication.core.model.AuthUser
-import org.darot.authserviceapplication.core.model.ClassRoom
-import org.darot.authserviceapplication.core.model.Student
 import org.darot.authserviceapplication.core.model.UserRole
+import org.darot.authserviceapplication.infrastructure.db.AuthUserRepository
 import org.darot.authserviceapplication.infrastructure.security.JwtUtil
 import org.darot.authserviceapplication.presentation.dto.*
-import org.springframework.http.HttpStatus
+import org.darot.authserviceapplication.presentation.exception.BadRequestException
 import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.BadCredentialsException
-import org.springframework.security.authentication.InternalAuthenticationServiceException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -25,7 +21,7 @@ class AuthenticationService(
     private val jwtUtil: JwtUtil
 ) {
 
-    fun registerUser(signUpRequest: SignUpRequest): AuthResponse {
+    fun registerUser(signUpRequest: SignUpRequest): Success<Nothing> {
 
         if (authUserRepository.findByEmail(signUpRequest.email) != null) {
             throw IllegalArgumentException("Email already exists")
@@ -36,59 +32,49 @@ class AuthenticationService(
             role = UserRole.valueOf(signUpRequest.role.uppercase(Locale.getDefault()))
         )
         authUserRepository.save(newUser)
-        return AuthResponse(status = HttpStatus.CREATED, "User registered successfully.")
+        return Success( "User registered successfully.", data = null)
     }
 
-    @RateLimiter(name = "myRateLimiter", fallbackMethod = "rateLimiterFallback")
-    fun loginUser(loginRequest: LoginRequest): AuthResponse {
+    @RateLimiter(name = "myRateLimiter")
+    fun loginUser(loginRequest: LoginRequest): Success<LoginData> {
         return try {
             // Authenticate user
             val authentication = authenticationManager.authenticate(
                 UsernamePasswordAuthenticationToken(loginRequest.email, loginRequest.password)
             )
             val authUser = authentication.principal as? AuthUser
-                ?: return AuthResponse(HttpStatus.BAD_REQUEST, "Invalid username or password.")
+                ?: throw BadRequestException("Invalid username or password.")
 
             // Generate tokens
             val accessToken = jwtUtil.generateAccessToken(authUser.username)
             val refreshToken = jwtUtil.generateRefreshToken(authUser.username)
 
             // Prepare response
-            val loginData = LoginData(accessToken, refreshToken)
-            LoginResponse(HttpStatus.OK, "User logged in.", loginData)
-        } catch (e: BadCredentialsException) {
-            // Handle BadCredentialsException errors
-            AuthResponse(HttpStatus.BAD_REQUEST, "Invalid username or password.")
-        } catch (e: InternalAuthenticationServiceException){
-            // Handle InternalAuthenticationServiceException errors
-            AuthResponse(HttpStatus.UNAUTHORIZED, "Unauthorized user.")
+            Success("User logged in.", LoginData(accessToken, refreshToken))
         } catch (e: Exception){
-            AuthResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.message.toString())
+            throw BadRequestException("Invalid username or password.")
         }
     }
 
-    fun refreshAccessToken(refreshTokenRequest: RefreshTokenRequest): AuthResponse {
-        val isValidToken = jwtUtil.validateToken(refreshTokenRequest.refreshToken)
+    fun refreshAccessToken(token: String): Success<LoginData> {
+        val isValidToken = jwtUtil.validateToken(token)
         if (!isValidToken) {
-           return ErrorResponse(status = HttpStatus.BAD_REQUEST, message = "User should login again")
+            throw BadRequestException("User should login again")
         }
-        val subject = jwtUtil.getTokenSubject(refreshTokenRequest.refreshToken)
+        val subject = jwtUtil.getTokenSubject(token)
         val accessToken = jwtUtil.generateAccessToken(subject)
         val refreshToken = jwtUtil.generateRefreshToken(subject)
         val loginData = LoginData(accessToken = accessToken, refreshToken = refreshToken)
-        return LoginResponse(status = HttpStatus.OK, "Successful.", data = loginData)
+        return Success("Successful.", data = loginData)
     }
 
-    fun resetPassword(request: PasswordResetRequest): AuthResponse {
+    fun resetPassword(request: PasswordResetRequest): Success<Nothing> {
         val user = authUserRepository.findByEmail(request.email)
-            ?: throw IllegalArgumentException("User not found")
+            ?: throw BadRequestException("User not found")
 
         val hashedPassword = passwordEncoder.encode(request.newPassword)
         authUserRepository.save(user.copy(password = hashedPassword))
-        return AuthResponse(HttpStatus.OK, "Password reset successful.")
+        return Success("Password reset successful.", data = null)
     }
 
-    fun rateLimiterFallback(loginRequest: LoginRequest, ex: Exception): AuthResponse {
-        return AuthResponse(HttpStatus.BANDWIDTH_LIMIT_EXCEEDED, "Exceeded limit, please try again later.")
-    }
 }
