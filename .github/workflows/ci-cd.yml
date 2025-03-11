@@ -31,5 +31,6 @@ jobs:
             gradle-${{ runner.os }}-
 
       - name: Build and test with Gradle
+        working-directory: AuthServiceApplication
         run: ./gradlew clean build
 
