@@ -1,1 +1,1 @@
-rootProject.name = "AuthServiceApplication"
+rootProject.name = "auth-service-application"

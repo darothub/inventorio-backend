@@ -16,7 +16,7 @@ import javax.crypto.SecretKey
 class JwtUtil {
     private val secret = "65dbe70cb66174f78717a9d81ad847732616aa425f913c108311683b4a839452"
     private val accessTokenExpirationTime = System.currentTimeMillis() + 1000 * 60 * 60 * 24 //24 hours
-    private val refreshTokenExpirationTime = System.currentTimeMillis()
+    private val refreshTokenExpirationTime = accessTokenExpirationTime * 30 //30 days
 
 
     fun generateAccessToken(email: String): String = generateAccessToken(hashMapOf(), email)
