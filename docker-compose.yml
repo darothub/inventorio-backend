@@ -1,13 +1,51 @@
-version: '3.8'
-
 services:
+  postgres-user:
+    image: postgres:15
+    container_name: postgres-user
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: user_db
+    ports:
+      - "5432:5432"
+
+  postgres-product:
+    image: postgres:15
+    container_name: postgres-product
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: product_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
   auth-service-app:
     build:
-      context: ./AuthServiceApplication
+      context: ./auth-service-application
       dockerfile: Dockerfile
     container_name: asp
+    depends_on:
+      - postgres-user
     ports:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
     restart: unless-stopped
+
+  product-service-app:
+    build:
+      context: ./product-service-application
+      dockerfile: Dockerfile
+    container_name: psa
+    depends_on:
+      - postgres-product
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    restart: unless-stopped
+#
+volumes:
+  postgres-data:

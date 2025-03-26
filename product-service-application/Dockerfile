@@ -19,7 +19,7 @@ COPY src ./src
 RUN ./gradlew build -x test
 
 # Expose the port for your application
-EXPOSE 8080
+EXPOSE 8081
 
 # Command to run the application
 ENTRYPOINT ["/entrypoint.sh"]

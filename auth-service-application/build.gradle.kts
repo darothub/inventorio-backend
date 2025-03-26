@@ -41,7 +41,7 @@ dependencies {
     implementation("io.github.resilience4j:resilience4j-spring-boot2:2.3.0")
 // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-aop
     implementation("org.springframework.boot:spring-boot-starter-aop:3.4.2")
-
+    runtimeOnly("org.postgresql:postgresql")
     runtimeOnly ("com.h2database:h2")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
