@@ -30,11 +30,9 @@ public class ProductServiceApplicationTests {
     @DynamicPropertySource
     static void overrideProps(DynamicPropertyRegistry registry) {
 
-        String jdbcUrl = postgres.getJdbcUrl()
-                .replace("jdbc:postgresql://", "jdbc:postgresql://host.docker.internal/")
-                .replaceFirst("/product_db", "");
+        final String finalJdbcUrl = postgres.getJdbcUrl();
 
-        registry.add("spring.datasource.url", () -> jdbcUrl);
+        registry.add("spring.datasource.url", () -> finalJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
 
