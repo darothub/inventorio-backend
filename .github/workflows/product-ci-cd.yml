@@ -1,4 +1,4 @@
-name: Build and Test -> User
+name: Build and Test -> Product
 
 on:
   push:
@@ -6,8 +6,7 @@ on:
       - main
       - develop
     paths:
-      - 'auth-service-application/**'
-      - 'product-service-application'
+      - 'product-service-application/**'
   pull_request:
     branches:
       - main
@@ -21,11 +20,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up JDK 17
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v3
@@ -36,7 +36,10 @@ jobs:
             gradle-${{ runner.os }}-
 
       - name: Build and test with Gradle
-        working-directory: auth-service-application
+        working-directory: product-service-application
         run: ./gradlew clean build
-
+        env:
+          TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: /var/run/docker.sock
+          TESTCONTAINERS_RYUK_DISABLED: "true"
+          TESTCONTAINERS_HOST_OVERRIDE: "host.docker.internal"
 
