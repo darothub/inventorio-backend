@@ -10,11 +10,10 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.time.Duration;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @SpringBootTest
@@ -30,9 +29,15 @@ public class ProductServiceApplicationTests {
     // ⚙️ Dynamically override Spring Boot datasource properties
     @DynamicPropertySource
     static void overrideProps(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+
+        final String finalJdbcUrl = "true".equals(System.getenv("TESTCONTAINERS_CI_MODE"))
+                ? postgres.getJdbcUrl().replace("localhost", "testcontainers")
+                : postgres.getJdbcUrl();
+
+        registry.add("spring.datasource.url", () -> finalJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
+
     }
     @BeforeAll
     static void setup() {
@@ -42,7 +47,7 @@ public class ProductServiceApplicationTests {
     }
     @Test
     public void contextLoads() {
-        System.out.println( "contextLoads");
+        assertTrue(postgres.isRunning());
     }
 
 }
