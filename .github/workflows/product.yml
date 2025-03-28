@@ -52,6 +52,6 @@ jobs:
         run: ./gradlew clean build
         env:
           DOCKER_HOST: tcp://docker:2375  # Connect to DinD service
-          TESTCONTAINERS_RYUK_DISABLED: "true"  # Disable Ryuk for stability
+          TESTCONTAINERS_RYUK_DISABLED: "false"
           TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: /var/run/docker.sock
 
